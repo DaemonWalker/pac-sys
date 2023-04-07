@@ -1,7 +1,6 @@
 package data
 
 import (
-	"log"
 	"pac-sys/models"
 	"pac-sys/utils"
 
@@ -16,21 +15,38 @@ func Migrate() {
 
 func Save(pac models.PacModel) {
 	db := getDbConn()
-	db.Create(&pac)
+	var count int64
+	err := db.Model(&models.PacModel{}).Where(&models.PacModel{Key: pac.Key}).Count(&count).Error
+
+	if err != nil {
+		utils.ErrorPanic(err)
+	}
+	if count == 0 {
+		err = db.Create(&pac).Error
+	} else {
+		err = db.Save(&pac).Error
+	}
+
+	if err != nil {
+		utils.ErrorPanic(err)
+	}
 }
 
 func Get(key string) string {
 	db := getDbConn()
 	var pac models.PacModel
-	db.Where(&models.PacModel{Key: key}).First(&pac)
+	err := db.Where(&models.PacModel{Key: key}).First(&pac).Error
+	if err != nil {
+		utils.ErrorPanic(err)
+	}
+
 	return pac.Value
 }
 
 func getDbConn() *gorm.DB {
 	db, err := gorm.Open(sqlite.Open("test.db"), &gorm.Config{})
 	if err != nil {
-		log.Println(err)
-		utils.CreatePanic(500, "数据库挂了")
+		utils.ErrorPanic(err)
 	}
 	return db
 }

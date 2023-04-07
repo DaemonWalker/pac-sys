@@ -1,19 +1,29 @@
 package main
 
 import (
-	"fmt"
-
-	"github.com/gin-gonic/gin"
-
 	"pac-sys/controllers"
 	"pac-sys/data"
+	"pac-sys/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
+
+}
+
+func startGin() {
 	data.Migrate()
-	r := gin.Default()
+	r := gin.New()
+	r.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
+		info := err.(models.PanicInfo)
+		c.String(info.Code, info.Message)
+	}))
 	r.POST("/api/save", controllers.SavePac)
 	r.GET("/api/get", controllers.GetPac)
-	r.Run() // listen and serve on 0.0.0.0:8080
-	fmt.Println("asd")
+	r.Run("127.0.0.1:5173")
+}
+
+func startProxy() {
+
 }

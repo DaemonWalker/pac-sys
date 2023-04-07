@@ -3,15 +3,15 @@ package controllers
 import (
 	"pac-sys/data"
 	"pac-sys/models"
+	"pac-sys/utils"
 
 	"github.com/gin-gonic/gin"
 )
 
 func SavePac(c *gin.Context) {
 	var pac models.PacModel
-	if c.ShouldBind(&pac) != nil {
-		c.Status(400)
-		return
+	if err := c.ShouldBind(&pac); err != nil {
+		utils.ErrorPanic(err)
 	}
 
 	data.Save(pac)
@@ -20,11 +20,9 @@ func SavePac(c *gin.Context) {
 
 func GetPac(c *gin.Context) {
 	var pac models.PacModel
-	if c.ShouldBind(&pac) == nil {
-		c.String(200, data.Get(pac.Key))
-		return
-	} else {
-		c.Status(400)
+	if err := c.ShouldBind(&pac); err != nil {
+		utils.ErrorPanic(err)
 	}
 
+	c.String(200, data.Get(pac.Key))
 }

@@ -11,6 +11,10 @@ func CreatePanic(code int, message string) {
 	panic(info)
 }
 
+func ErrorPanic(err error) {
+	CreatePanic(500, err.Error())
+}
+
 func JSONDecode(r io.Reader, obj interface{}) error {
 	if err := json.NewDecoder(r).Decode(obj); err != nil {
 		return err
