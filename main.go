@@ -1,29 +1,27 @@
 package main
 
 import (
+	"github.com/gin-gonic/gin"
+	"log"
 	"pac-sys/controllers"
 	"pac-sys/data"
-	"pac-sys/models"
-
-	"github.com/gin-gonic/gin"
+	. "pac-sys/middlewares"
 )
 
 func main() {
-
-}
-
-func startGin() {
 	data.Migrate()
+
 	r := gin.New()
-	r.Use(gin.CustomRecovery(func(c *gin.Context, err interface{}) {
-		info := err.(models.PanicInfo)
-		c.String(info.Code, info.Message)
-	}))
-	r.POST("/api/save", controllers.SavePac)
-	r.GET("/api/get", controllers.GetPac)
-	r.Run("127.0.0.1:5173")
-}
+	r.Use(
+		RecoverMiddleware(),
+		AuthMiddleware,
+		gin.Logger(),
+	)
 
-func startProxy() {
+	controllers.BindAction(r)
 
+	err := r.Run("127.0.0.1:5173")
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
