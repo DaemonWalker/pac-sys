@@ -8,6 +8,7 @@ import (
 
 func BindAction(e *gin.Engine) {
 	e.POST("/api/user/getToken", getToken)
+	e.POST("/api/pacs/getAll", getAllPacs)
 }
 
 func bindValue[T any](c *gin.Context) T {

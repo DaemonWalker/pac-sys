@@ -1,6 +1,7 @@
 package data
 
 import (
+	"net/http"
 	. "pac-sys/entities"
 	"pac-sys/utils"
 	"strconv"
@@ -19,15 +20,18 @@ func GetUserInfoForLogin(account string) UserTokenDto {
 
 	var userGroups []UserGroupEntity
 	err := db.Table("users").
-		Select("usergroups.user_id, userGroups.group_id").
-		Joins("inner join usergroups on users.id = usergroups.user_id").
+		Select("ug.user_id, ug.group_id").
+		Joins("inner join user_groups ug on users.id = ug.user_id").
 		Where("users.account=?", account).Find(&userGroups).Error
 
-	if err != nil || len(userGroups) == 0 {
-		utils.CreatePanic(500, err.Error())
+	if err != nil {
+		utils.CreatePanic(http.StatusInternalServerError, err.Error())
+	}
+	if len(userGroups) == 0 {
+		utils.CreatePanic(http.StatusBadRequest, "Cannot find group info for this user")
 	}
 
-	token := UserTokenDto{UserId: strconv.Itoa(userGroups[0].Id)}
+	token := UserTokenDto{UserId: strconv.Itoa(userGroups[0].UserId)}
 	token.Groups = make([]string, len(userGroups))
 	for i, v := range userGroups {
 		token.Groups[i] = strconv.Itoa(v.GroupId)

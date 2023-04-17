@@ -26,3 +26,11 @@ func JSONDecode(r io.Reader, obj interface{}) error {
 	}
 	return nil
 }
+
+func ConvertArray[TS any, TT any](ts []TS, foo func(ts TS) TT) []TT {
+	array := make([]TT, len(ts))
+	for i, v := range ts {
+		array[i] = foo(v)
+	}
+	return array
+}

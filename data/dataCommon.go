@@ -3,15 +3,38 @@ package data
 import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
-	"pac-sys/models"
+	"pac-sys/entities"
 	"pac-sys/utils"
+	"time"
 )
 
-func Migrate() {
-	db := getDbConn()
-	db.AutoMigrate(&models.PacModel{})
-}
+var dbConnection *gorm.DB
 
+func InitDB() {
+	connStr := "root:123456@tcp(127.0.0.1:3306)/pac_sys?charset=utf8mb4&parseTime=True&loc=Local"
+	var err error
+	dbConnection, err = gorm.Open(mysql.Open(connStr), &gorm.Config{})
+	if err != nil {
+		utils.ErrorPanic(err)
+	}
+	sqlDB, err := dbConnection.DB()
+	sqlDB.SetMaxIdleConns(10)
+	sqlDB.SetMaxOpenConns(100)
+	sqlDB.SetConnMaxLifetime(time.Hour)
+	migrate()
+}
+func migrate() {
+	db := getDbConn()
+	err := db.AutoMigrate(&entities.UserEntity{},
+		&entities.UserGroupEntity{},
+		&entities.PacEntity{},
+		&entities.GroupEntity{})
+
+	if err != nil {
+		utils.ErrorPanic(err)
+		return
+	}
+}
 func createOrUpdate[T any](t T, keySelector func(T) T, copy func(tFrom T, tTo T)) {
 	var entity T
 
@@ -43,6 +66,7 @@ func queryWithId[T any](condition T) T {
 	err := db.Where(&condition).First(&t).Error
 	if err != nil {
 		utils.ErrorPanic(err)
+		return t
 	}
 
 	return t
@@ -61,10 +85,5 @@ func query[T any](condition T) []T {
 }
 
 func getDbConn() *gorm.DB {
-	connStr := "root:123456@tcp(127.0.0.1:3306)/testdb?charset=utf8mb4&parseTime=True&loc=Local"
-	db, err := gorm.Open(mysql.Open(connStr), &gorm.Config{})
-	if err != nil {
-		utils.ErrorPanic(err)
-	}
-	return db
+	return dbConnection
 }

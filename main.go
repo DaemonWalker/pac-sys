@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	data.Migrate()
+	data.InitDB()
 
 	r := gin.New()
 	r.Use(
