@@ -3,7 +3,7 @@ package data
 import (
 	"net/http"
 	. "pac-sys/entities"
-	"pac-sys/utils"
+	"pac-sys/share"
 	"strconv"
 )
 
@@ -25,16 +25,16 @@ func GetUserInfoForLogin(account string) UserTokenDto {
 		Where("users.account=?", account).Find(&userGroups).Error
 
 	if err != nil {
-		utils.CreatePanic(http.StatusInternalServerError, err.Error())
+		share.CreatePanic(http.StatusInternalServerError, err.Error())
 	}
 	if len(userGroups) == 0 {
-		utils.CreatePanic(http.StatusBadRequest, "Cannot find group info for this user")
+		share.CreatePanic(http.StatusBadRequest, "Cannot find group info for this user")
 	}
 
 	token := UserTokenDto{UserId: strconv.Itoa(userGroups[0].UserId)}
-	token.Groups = make([]string, len(userGroups))
+	token.Groups = make([]int, len(userGroups))
 	for i, v := range userGroups {
-		token.Groups[i] = strconv.Itoa(v.GroupId)
+		token.Groups[i] = v.GroupId
 	}
 	return token
 }

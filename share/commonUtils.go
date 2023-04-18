@@ -1,4 +1,4 @@
-package utils
+package share
 
 import (
 	"encoding/json"
@@ -33,4 +33,13 @@ func ConvertArray[TS any, TT any](ts []TS, foo func(ts TS) TT) []TT {
 		array[i] = foo(v)
 	}
 	return array
+}
+
+func ArrayContains[T comparable](ts []T, t T) bool {
+	for _, v := range ts {
+		if t == v {
+			return true
+		}
+	}
+	return false
 }

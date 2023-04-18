@@ -9,7 +9,7 @@ type UserEntity struct {
 
 type UserTokenDto struct {
 	UserId string
-	Groups []string
+	Groups []int
 }
 
 func (UserEntity) TableName() string {

@@ -2,7 +2,7 @@ package data
 
 import (
 	. "pac-sys/entities"
-	. "pac-sys/utils"
+	. "pac-sys/share"
 )
 
 func SavePac(pac PacEntity) {
@@ -17,13 +17,13 @@ func GetPacById(id int) PacEntity {
 	return queryWithId(PacEntity{Id: id})
 }
 
-func GetPacByGroupId(groupId int) []PacDto {
+func GetPacByGroupId(groupIds []int) []PacDto {
 	db := getDbConn()
 	var pacs []PacDto
 	err := db.Table("groups").
 		Select("groups.name, pacs.name, pacs.id, pacs.value").
 		Joins("inner join pacs on pacs.group_id=groups.id").
-		Where("groups.id=?", groupId).Find(&pacs).Error
+		Where("groups.id in ?", groupIds).Find(&pacs).Error
 	if err != nil {
 		CreatePanic(500, err.Error())
 	}

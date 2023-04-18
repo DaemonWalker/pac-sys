@@ -4,7 +4,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"pac-sys/entities"
-	"pac-sys/utils"
+	"pac-sys/share"
 	"time"
 )
 
@@ -15,7 +15,7 @@ func InitDB() {
 	var err error
 	dbConnection, err = gorm.Open(mysql.Open(connStr), &gorm.Config{})
 	if err != nil {
-		utils.ErrorPanic(err)
+		share.ErrorPanic(err)
 	}
 	sqlDB, err := dbConnection.DB()
 	sqlDB.SetMaxIdleConns(10)
@@ -31,7 +31,7 @@ func migrate() {
 		&entities.GroupEntity{})
 
 	if err != nil {
-		utils.ErrorPanic(err)
+		share.ErrorPanic(err)
 		return
 	}
 }
@@ -42,21 +42,18 @@ func createOrUpdate[T any](t T, keySelector func(T) T, copy func(tFrom T, tTo T)
 
 	err := db.Model(&entity).Where(keySelector(t)).First(&entity).Error
 	if err != nil && err != gorm.ErrRecordNotFound {
-		utils.CreatePanic(500, err.Error())
+		share.CreatePanic(500, err.Error())
 	}
 
 	if err == nil {
 		copy(t, entity)
-		err = db.Save(&entity).Error
+		err = db.Debug().Updates(&entity).Error
 	} else {
 		entity = t
-		result := db.Create(&entity)
-		if result.Error != nil {
-			err = result.Error
-		}
+		err = db.Create(&entity).Error
 	}
 	if err != nil {
-		utils.CreatePanic(500, err.Error())
+		share.CreatePanic(500, err.Error())
 	}
 }
 
@@ -65,7 +62,7 @@ func queryWithId[T any](condition T) T {
 	var t T
 	err := db.Where(&condition).First(&t).Error
 	if err != nil {
-		utils.ErrorPanic(err)
+		share.ErrorPanic(err)
 		return t
 	}
 
@@ -78,7 +75,7 @@ func query[T any](condition T) []T {
 	db := getDbConn()
 	err := db.Where(&condition).Find(&ts).Error
 	if err != nil {
-		utils.CreatePanic(500, err.Error())
+		share.CreatePanic(500, err.Error())
 	}
 
 	return ts
